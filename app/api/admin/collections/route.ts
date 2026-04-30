@@ -147,6 +147,7 @@ async function fetchProfileRows(admin: ReturnType<typeof ensureAdminClient>) {
     return withPriorityPhotos;
   }
 
+  if (/priority_photo_paths|priority_photo_details/i.test(withPriorityPhotos.error.message ?? '')) {
     return admin
       .from('profiles')
       .select('id, full_name, role, batch, quote, story, photo_path')
@@ -173,6 +174,7 @@ async function fetchGalleryRows(admin: ReturnType<typeof ensureAdminClient>) {
     return withTags;
   }
 
+  if (/tagged_profile_ids/i.test(withTags.error.message ?? '')) {
     return admin
       .from('gallery_images')
       .select('id, title, category, storage_path, width, height, alt_text')
@@ -208,7 +210,7 @@ export async function GET() {
     if (profilesResponse.error) {
       if (isMissingTableMessage(profilesResponse.error.message)) {
         return jsonNoStore(
-          { error: 'The public.profiles table is missing. Run supabase/seed.sql in Supabase.' },
+          { error: 'The public.profiles table is missing.' },
           500,
         );
       }
@@ -218,7 +220,7 @@ export async function GET() {
     if (galleryResponse.error) {
       if (isMissingTableMessage(galleryResponse.error.message)) {
         return jsonNoStore(
-          { error: 'The public.gallery_images table is missing. Run supabase/seed.sql in Supabase.' },
+          { error: 'The public.gallery_images table is missing.' },
           500,
         );
       }
@@ -228,7 +230,7 @@ export async function GET() {
     if (messagesResponse.error) {
       if (isMissingTableMessage(messagesResponse.error.message)) {
         return jsonNoStore(
-          { error: 'The public.messages table is missing. Run supabase/seed.sql in Supabase.' },
+          { error: 'The public.messages table is missing.' },
           500,
         );
       }
@@ -292,8 +294,8 @@ export async function GET() {
           photoUrl: image.storage_path
             ? admin.storage.from(bucketGallery).getPublicUrl(image.storage_path).data.publicUrl
             : '',
-          audioUrl: (image as { audio_path?: string }).audio_path
-            ? admin.storage.from('yearbook-music').getPublicUrl((image as { audio_path: string }).audio_path).data.publicUrl
+          audioUrl: ((image as unknown) as { audio_path?: string | null }).audio_path
+            ? admin.storage.from('yearbook-music').getPublicUrl(((image as unknown) as { audio_path: string }).audio_path).data.publicUrl
             : '',
           blurDataURL: createBlurDataURL('rgba(255,255,255,0.16)'),
         })) ?? [],

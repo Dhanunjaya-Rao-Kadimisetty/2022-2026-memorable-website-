@@ -92,13 +92,6 @@ export default function AdminPage() {
     () => new Map(profiles.map((profile) => [profile.id, profile])),
     [profiles],
   );
-  const selectedTaggedProfiles = useMemo(
-    () =>
-      selectedTaggedProfileIds
-        .map((id) => profileLookup.get(id))
-        .filter((profile): profile is YearbookProfile => Boolean(profile)),
-    [profileLookup, selectedTaggedProfileIds],
-  );
   const selectedPriorityProfile = useMemo(
     () => (selectedPriorityProfileId ? profileLookup.get(selectedPriorityProfileId) ?? null : null),
     [profileLookup, selectedPriorityProfileId],
@@ -124,11 +117,6 @@ export default function AdminPage() {
     setLoadError('');
   }
 
-  function formatTaggedPeople(ids: string[]) {
-    return ids
-      .map((id) => profileLookup.get(id)?.full_name)
-      .filter((name): name is string => Boolean(name));
-  }
 
   async function submitProfile(form: HTMLFormElement) {
     setProfileState({ loading: true, message: '', error: '' });
@@ -204,7 +192,10 @@ export default function AdminPage() {
     }
   }
 
-  async function updatePriorityPhotoOrder(profileId: string, details: any[]) {
+  async function updatePriorityPhotoOrder(
+    profileId: string,
+    details: Array<{ path: string; title: string | null; description: string | null }>,
+  ) {
     setPriorityPhotoState({ loading: true, message: '', error: '' });
     try {
       const response = await fetch(`/api/admin/profiles/${profileId}/priority-photos`, {
