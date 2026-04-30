@@ -126,7 +126,7 @@ export default function ProfileCard({ profile, index, selected = false, hoverPho
         <div className="absolute inset-x-0 bottom-0 p-5">
           <p className="text-xs uppercase tracking-[0.28em] text-zinc-300">{profile.role}</p>
           <h3 className="mt-2 font-display text-2xl text-white">{profile.full_name}</h3>
-                  <div className="mt-3 flex gap-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  <div className="mt-3 flex gap-3 transition-opacity duration-300">
             {profile.whatsapp_url && (
               <a
                 href={profile.whatsapp_url}
