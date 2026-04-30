@@ -267,8 +267,8 @@ export async function GET() {
           photoUrl: image.storage_path
             ? admin.storage.from(bucketGallery).getPublicUrl(image.storage_path).data.publicUrl
             : '',
-          audioUrl: (image as { audio_path?: string }).audio_path
-            ? admin.storage.from('yearbook-music').getPublicUrl((image as { audio_path: string }).audio_path).data.publicUrl
+          audioUrl: ((image as unknown) as { audio_path?: string | null }).audio_path
+            ? admin.storage.from('yearbook-music').getPublicUrl(((image as unknown) as { audio_path: string }).audio_path).data.publicUrl
             : '',
           blurDataURL: createBlurDataURL('rgba(255,255,255,0.16)'),
         })) ?? [],
