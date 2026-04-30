@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { buildDownloadFilename, downloadMedia } from '@/lib/downloadMedia';
 import { fetchGalleryImages, fetchProfiles, type GalleryImage, type YearbookProfile } from '@/lib/supabaseClient';
+import MediaLightbox from '@/components/MediaLightbox';
 
 type Props = {
   profiles: YearbookProfile[];
@@ -66,6 +67,7 @@ export default function PeopleClient({ profiles, gallery }: Props) {
   const [liveGallery, setLiveGallery] = useState<GalleryImage[]>(gallery);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState(profiles[0]?.id ?? '');
+  const [selectedMemory, setSelectedMemory] = useState<GalleryImage | null>(null);
   const [downloadState, setDownloadState] = useState<string>('');
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
 
@@ -383,7 +385,8 @@ export default function PeopleClient({ profiles, gallery }: Props) {
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="overflow-hidden rounded-[1.4rem] border border-white/[0.08] bg-white/[0.03]"
+                    onClick={() => setSelectedMemory(memory)}
+                    className="group cursor-pointer overflow-hidden rounded-[1.4rem] border border-white/[0.08] bg-white/[0.03] transition-colors hover:border-white/20"
                   >
                     <div className="relative aspect-[4/3]">
                       {memory.mediaType === 'video' ? (
@@ -441,6 +444,17 @@ export default function PeopleClient({ profiles, gallery }: Props) {
           )}
         </div>
       </div>
+      </div>
+
+      <AnimatePresence>
+        {selectedMemory && (
+          <MediaLightbox
+            media={selectedMemory}
+            onClose={() => setSelectedMemory(null)}
+            allMedia={selectedPerson?.memories}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }

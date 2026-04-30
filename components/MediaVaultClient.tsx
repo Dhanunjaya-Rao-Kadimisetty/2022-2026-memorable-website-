@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { buildDownloadFilename, downloadMedia } from '@/lib/downloadMedia';
 import { fetchGalleryImages, type GalleryImage } from '@/lib/supabaseClient';
+import MediaLightbox from '@/components/MediaLightbox';
 
 type Props = {
   images: GalleryImage[];
@@ -24,6 +25,7 @@ function categorySortValue(value: string) {
 export default function MediaVaultClient({ images }: Props) {
   const [liveImages, setLiveImages] = useState<GalleryImage[]>(images);
   const [filter, setFilter] = useState<string>('All');
+  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [downloadState, setDownloadState] = useState<string>('');
 
   useEffect(() => {
@@ -121,7 +123,8 @@ export default function MediaVaultClient({ images }: Props) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, delay: index * 0.04 }}
               whileHover={{ y: -6, scale: 1.01 }}
-              className="group panel break-inside-avoid overflow-hidden will-change-transform"
+              onClick={() => setSelectedImage(image)}
+              className="group panel cursor-pointer break-inside-avoid overflow-hidden will-change-transform transition-colors hover:border-white/20"
             >
               <div className="relative overflow-hidden">
                 {image.tagged_profile_ids.length ? (
@@ -194,6 +197,17 @@ export default function MediaVaultClient({ images }: Props) {
             </div>
           )}
         </motion.div>
+      </AnimatePresence>
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedImage && (
+          <MediaLightbox
+            media={selectedImage}
+            onClose={() => setSelectedImage(null)}
+            allMedia={visibleImages}
+          />
+        )}
       </AnimatePresence>
     </section>
   );

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import ProfileCard from '@/components/ProfileCard';
 import { fetchGalleryImages, fetchProfiles, type GalleryImage, type YearbookProfile } from '@/lib/supabaseClient';
+import MediaLightbox from '@/components/MediaLightbox';
 
 type Props = {
   profiles: YearbookProfile[];
@@ -15,6 +16,7 @@ export default function YearbookClient({ profiles, gallery }: Props) {
   const [liveProfiles, setLiveProfiles] = useState<YearbookProfile[]>(profiles);
   const [liveGallery, setLiveGallery] = useState<GalleryImage[]>(gallery);
   const [selected, setSelected] = useState<YearbookProfile | null>(null);
+  const [selectedMemory, setSelectedMemory] = useState<GalleryImage | null>(null);
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
 
@@ -261,7 +263,8 @@ export default function YearbookClient({ profiles, gallery }: Props) {
                           {featuredMemories.map((memory) => (
                             <div
                               key={memory.id}
-                              className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]"
+                              onClick={() => setSelectedMemory(memory)}
+                              className="group cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] transition-colors hover:border-white/20"
                             >
                               <div className="relative aspect-[4/3]">
                                 {memory.mediaType === 'video' ? (
@@ -317,6 +320,16 @@ export default function YearbookClient({ profiles, gallery }: Props) {
           ) : null}
         </AnimatePresence>
       </LayoutGroup>
+
+      <AnimatePresence>
+        {selectedMemory && (
+          <MediaLightbox
+            media={selectedMemory}
+            onClose={() => setSelectedMemory(null)}
+            allMedia={featuredMemories}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }
