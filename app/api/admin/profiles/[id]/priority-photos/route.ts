@@ -186,3 +186,58 @@ export async function POST(request: Request, { params }: Params) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request, { params }: Params) {
+  try {
+    const { id } = await params;
+    if (!isUuid(id)) {
+      return NextResponse.json({ error: 'Invalid profile ID' }, { status: 400 });
+    }
+
+    const { details } = (await request.json()) as {
+      details: Array<{ path: string; title: string | null; description: string | null }>;
+    };
+
+    if (!Array.isArray(details)) {
+      return NextResponse.json({ error: 'Details must be an array' }, { status: 400 });
+    }
+
+    const bucketName = process.env.NEXT_PUBLIC_SUPABASE_PROFILE_BUCKET ?? 'yearbook-media';
+    const admin = await ensurePublicBucket(bucketName);
+
+    // Fetch existing to find which ones to delete from storage
+    const current = await admin
+      .from('profiles')
+      .select('priority_photo_paths')
+      .eq('id', id)
+      .single();
+
+    if (!current.error && current.data) {
+      const oldPaths = normalizeStoredPaths((current.data as { priority_photo_paths?: unknown }).priority_photo_paths);
+      const nextPaths = details.map((d) => d.path);
+      const toDelete = oldPaths.filter((path) => !nextPaths.includes(path));
+
+      if (toDelete.length) {
+        await admin.storage.from(bucketName).remove(toDelete);
+      }
+    }
+
+    const { data, error } = await admin
+      .from('profiles')
+      .update({
+        priority_photo_paths: details.map((d) => d.path),
+        priority_photo_details: details,
+      })
+      .eq('id', id)
+      .select('id, priority_photo_paths, priority_photo_details')
+      .single();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    revalidateTag('profiles');
+    return NextResponse.json({ data });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

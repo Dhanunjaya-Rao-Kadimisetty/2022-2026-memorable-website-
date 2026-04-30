@@ -58,7 +58,7 @@ export default function AdminPage() {
         };
 
         if (!response.ok) {
-          throw new Error(getMessage(payload.error) || 'Could not load Supabase data.');
+          throw new Error(getMessage(payload.error) || 'Could not load data.');
         }
 
         if (!active) return;
@@ -71,7 +71,7 @@ export default function AdminPage() {
         setProfiles([]);
         setGallery([]);
         setMessages([]);
-        setLoadError(getMessage(error) || 'Could not load Supabase data.');
+        setLoadError(getMessage(error) || 'Could not load data.');
       } finally {
         if (active) {
           setCollectionsLoaded(true);
@@ -115,7 +115,7 @@ export default function AdminPage() {
     };
 
     if (!response.ok) {
-      throw new Error(getMessage(payload.error) || 'Could not load Supabase data.');
+      throw new Error(getMessage(payload.error) || 'Could not load data.');
     }
 
     setProfiles(payload.profiles ?? []);
@@ -201,6 +201,28 @@ export default function AdminPage() {
         message: '',
         error: getMessage(error) || 'Upload failed',
       });
+    }
+  }
+
+  async function updatePriorityPhotoOrder(profileId: string, details: any[]) {
+    setPriorityPhotoState({ loading: true, message: '', error: '' });
+    try {
+      const response = await fetch(`/api/admin/profiles/${profileId}/priority-photos`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ details }),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setPriorityPhotoState({ loading: false, message: '', error: getMessage(payload.error) || 'Failed to update order' });
+        return;
+      }
+
+      await refreshCollections();
+      setPriorityPhotoState({ loading: false, message: 'Updated photo order.', error: '' });
+    } catch (error) {
+      setPriorityPhotoState({ loading: false, message: '', error: getMessage(error) || 'Failed to update order' });
     }
   }
 
@@ -325,7 +347,7 @@ export default function AdminPage() {
           <div className="panel p-6 sm:p-8">
             <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
               <div>
-                <p className="text-xs uppercase tracking-[0.35em] text-zinc-400">Admin Dashboard v2.1</p>
+                <p className="text-xs uppercase tracking-[0.35em] text-zinc-400">Admin Dashboard v2.2</p>
                 <h1 className="mt-3 font-display text-4xl text-white sm:text-5xl">Memorable Control</h1>
                 <p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-300">
                   Manage your yearbook profiles, gallery memories, and wall notes. 
@@ -398,7 +420,7 @@ export default function AdminPage() {
                         <input name="birthday" type="date" defaultValue={editingProfile?.birthday ?? ''} className="admin-input text-xs" />
                       </label>
                       <label className="block">
-                        <span className="mb-1 block text-[10px] uppercase tracking-widest text-zinc-600">Photo Align</span>
+                        <span className="mb-1 block text-[10px] uppercase tracking-widest text-zinc-600">Main Photo Align</span>
                         <select name="photo_alignment" defaultValue={editingProfile?.photo_alignment ?? 'center'} className="admin-input text-xs">
                           <option value="center">Center</option>
                           <option value="top">Top</option>
@@ -413,9 +435,6 @@ export default function AdminPage() {
                   <label className="block">
                     <span className="mb-2 block text-xs uppercase tracking-widest text-zinc-500">Portrait Photo</span>
                     <input name="photo" type="file" accept="image/*" className="admin-file-input" />
-                    {editingProfile?.photo_path && (
-                      <p className="mt-1 text-[10px] text-zinc-600">Current: {editingProfile.photo_path.split('/').pop()}</p>
-                    )}
                   </label>
                 </div>
 
@@ -428,35 +447,105 @@ export default function AdminPage() {
               </form>
 
               {/* Scrolling Photos Form */}
-              <form
-                className="panel space-y-4 p-6 sm:p-8"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void submitPriorityPhotos(event.currentTarget);
-                }}
-              >
-                <h2 className="font-display text-2xl text-white">Add Scrolling Photos</h2>
-                <select
-                  name="profile_id"
-                  required
-                  value={selectedPriorityProfileId}
-                  onChange={(e) => setSelectedPriorityProfileId(e.target.value)}
-                  className="admin-input"
-                >
-                  <option value="">Select a profile</option>
-                  {profiles.map((p) => (
-                    <option key={p.id} value={p.id}>{p.full_name}</option>
-                  ))}
-                </select>
-                <input name="title" required placeholder="Photo Title" className="admin-input" />
-                <textarea name="description" rows={2} placeholder="Description" className="admin-input" />
-                <input name="priority_photos" type="file" accept="image/*" required className="admin-file-input" />
-                <button type="submit" disabled={priorityPhotoState.loading || !selectedPriorityProfileId} className="admin-button w-full bg-white/[0.08] text-white">
-                  {priorityPhotoState.loading ? 'Uploading...' : 'Add Scrolling Photo'}
-                </button>
+              <div className="panel space-y-6 p-6 sm:p-8">
+                <h2 className="font-display text-2xl text-white">Manage Scrolling Photos</h2>
+                
+                <div className="space-y-4">
+                  <select
+                    value={selectedPriorityProfileId}
+                    onChange={(e) => setSelectedPriorityProfileId(e.target.value)}
+                    className="admin-input"
+                  >
+                    <option value="">Select a profile to manage</option>
+                    {profiles.map((p) => (
+                      <option key={p.id} value={p.id}>{p.full_name}</option>
+                    ))}
+                  </select>
+
+                  {selectedPriorityProfile && (
+                    <div className="space-y-4">
+                      {/* Current List with Reordering */}
+                      <div className="space-y-3 rounded-2xl border border-white/5 bg-white/[0.02] p-4">
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500">Existing Photos (Reorder/Delete)</p>
+                        {selectedPriorityProfile.priority_photo_details.length === 0 ? (
+                          <p className="py-4 text-center text-xs text-zinc-600 italic">No scrolling photos yet.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {selectedPriorityProfile.priority_photo_details.map((item, index) => (
+                              <div key={item.path} className="flex items-center gap-3 rounded-xl bg-black/40 p-2">
+                                <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-800">
+                                  <img src={selectedPriorityProfile.priorityPhotoUrls[index]} alt="" className="h-full w-full object-cover" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-xs font-medium text-white">{item.title || 'Untitled'}</p>
+                                  <p className="truncate text-[10px] text-zinc-500">{item.description || 'No description'}</p>
+                                </div>
+                                <div className="flex gap-1">
+                                  <button
+                                    onClick={() => {
+                                      if (index === 0) return;
+                                      const next = [...selectedPriorityProfile.priority_photo_details];
+                                      [next[index], next[index - 1]] = [next[index - 1], next[index]];
+                                      void updatePriorityPhotoOrder(selectedPriorityProfile.id, next);
+                                    }}
+                                    disabled={index === 0 || priorityPhotoState.loading}
+                                    className="rounded-lg bg-white/5 p-1.5 text-zinc-400 hover:text-white disabled:opacity-30"
+                                  >
+                                    ↑
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (index === selectedPriorityProfile.priority_photo_details.length - 1) return;
+                                      const next = [...selectedPriorityProfile.priority_photo_details];
+                                      [next[index], next[index + 1]] = [next[index + 1], next[index]];
+                                      void updatePriorityPhotoOrder(selectedPriorityProfile.id, next);
+                                    }}
+                                    disabled={index === selectedPriorityProfile.priority_photo_details.length - 1 || priorityPhotoState.loading}
+                                    className="rounded-lg bg-white/5 p-1.5 text-zinc-400 hover:text-white disabled:opacity-30"
+                                  >
+                                    ↓
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (!confirm('Delete this photo?')) return;
+                                      const next = selectedPriorityProfile.priority_photo_details.filter((_, i) => i !== index);
+                                      void updatePriorityPhotoOrder(selectedPriorityProfile.id, next);
+                                    }}
+                                    disabled={priorityPhotoState.loading}
+                                    className="rounded-lg bg-red-500/10 p-1.5 text-red-500/60 hover:text-red-400 disabled:opacity-30"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Add New Section */}
+                      <form
+                        className="space-y-4 rounded-2xl border border-white/5 bg-white/[0.04] p-4"
+                        onSubmit={(event) => {
+                          event.preventDefault();
+                          void submitPriorityPhotos(event.currentTarget);
+                        }}
+                      >
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-400 font-medium">Add New Scrolling Photo</p>
+                        <input type="hidden" name="profile_id" value={selectedPriorityProfileId} />
+                        <input name="title" required placeholder="Photo Title" className="admin-input" />
+                        <textarea name="description" rows={2} placeholder="Description" className="admin-input" />
+                        <input name="priority_photos" type="file" accept="image/*" required className="admin-file-input" />
+                        <button type="submit" disabled={priorityPhotoState.loading} className="admin-button w-full bg-white text-zinc-950">
+                          {priorityPhotoState.loading ? 'Uploading...' : 'Upload New Photo'}
+                        </button>
+                      </form>
+                    </div>
+                  )}
+                </div>
                 {priorityPhotoState.message && <p className="text-sm text-emerald-400">{priorityPhotoState.message}</p>}
                 {priorityPhotoState.error && <p className="text-sm text-red-400">{priorityPhotoState.error}</p>}
-              </form>
+              </div>
             </div>
 
             <div className="space-y-6">
@@ -514,11 +603,6 @@ export default function AdminPage() {
                         </label>
                       ))}
                     </div>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <input name="width" type="number" defaultValue={editingGallery?.width ?? ''} placeholder="Width (px)" className="admin-input text-xs" />
-                    <input name="height" type="number" defaultValue={editingGallery?.height ?? ''} placeholder="Height (px)" className="admin-input text-xs" />
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
