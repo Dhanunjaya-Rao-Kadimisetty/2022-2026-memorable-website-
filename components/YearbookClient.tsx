@@ -179,6 +179,15 @@ export default function YearbookClient({ profiles, gallery }: Props) {
                     className="object-cover object-[center_18%] grayscale-0"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
+                  
+                  {selected.birthday && (
+                    <div className="absolute left-6 top-6 rounded-2xl bg-black/40 px-4 py-2 backdrop-blur-md border border-white/10">
+                      <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">Birthday</p>
+                      <p className="mt-1 text-sm font-medium text-white">
+                        {new Date(selected.birthday).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col justify-between p-6 sm:p-8">
                   <div>
@@ -187,6 +196,49 @@ export default function YearbookClient({ profiles, gallery }: Props) {
                     <p className="mt-2 text-sm uppercase tracking-[0.25em] text-zinc-500">
                       {selected.batch}
                     </p>
+
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      {selected.whatsapp_url && (
+                        <a
+                          href={selected.whatsapp_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[10px] font-medium uppercase tracking-widest text-zinc-200 transition hover:bg-emerald-500/10 hover:text-emerald-400"
+                        >
+                          WhatsApp
+                        </a>
+                      )}
+                      {selected.instagram_url && (
+                        <a
+                          href={selected.instagram_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[10px] font-medium uppercase tracking-widest text-zinc-200 transition hover:bg-pink-500/10 hover:text-pink-500"
+                        >
+                          Instagram
+                        </a>
+                      )}
+                      {selected.snapchat_url && (
+                        <a
+                          href={selected.snapchat_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[10px] font-medium uppercase tracking-widest text-zinc-200 transition hover:bg-yellow-500/10 hover:text-yellow-400"
+                        >
+                          Snapchat
+                        </a>
+                      )}
+                      {selected.twitter_url && (
+                        <a
+                          href={selected.twitter_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-[10px] font-medium uppercase tracking-widest text-zinc-200 transition hover:bg-sky-500/10 hover:text-sky-400"
+                        >
+                          Twitter
+                        </a>
+                      )}
+                    </div>
 
                     <blockquote className="mt-8 border-l border-white/10 pl-5 text-lg leading-8 text-zinc-200">
                       {selected.quote}
