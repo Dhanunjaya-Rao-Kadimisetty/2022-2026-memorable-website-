@@ -195,12 +195,13 @@ async function insertGalleryRow(
     height: number | null;
     storage_path: string;
     tagged_profile_ids: string[];
+    audio_path: string | null;
   },
 ) {
   const withTags = await admin
     .from('gallery_images')
     .insert(values)
-    .select(buildGallerySelect(true))
+    .select(buildGallerySelect(true) + ', audio_path')
     .single();
 
   if (!withTags.error || !isMissingTagColumnError(withTags.error.message)) {
@@ -216,8 +217,9 @@ async function insertGalleryRow(
       width: values.width,
       height: values.height,
       storage_path: values.storage_path,
+      audio_path: values.audio_path,
     })
-    .select(buildGallerySelect(false))
+    .select(buildGallerySelect(false) + ', audio_path')
     .single();
 }
 
