@@ -198,7 +198,6 @@ export default function MediaVaultClient({ images }: Props) {
           )}
         </motion.div>
       </AnimatePresence>
-      </AnimatePresence>
 
       <AnimatePresence>
         {selectedImage && (

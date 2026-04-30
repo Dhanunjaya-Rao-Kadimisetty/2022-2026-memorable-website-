@@ -444,7 +444,6 @@ export default function PeopleClient({ profiles, gallery }: Props) {
           )}
         </div>
       </div>
-      </div>
 
       <AnimatePresence>
         {selectedMemory && (
