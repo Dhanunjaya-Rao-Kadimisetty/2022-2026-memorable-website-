@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-cinematic-950 text-zinc-100 antialiased font-sans;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(113, 113, 122, 0.14), transparent 26%),
+    linear-gradient(180deg, rgba(24, 24, 27, 1), rgba(9, 9, 11, 1));
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(250, 250, 250, 0.14);
+  color: white;
+}
+
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.15;
+  background-image: url('/grain.svg');
+  background-size: 420px 420px;
+  mix-blend-mode: soft-light;
+}
+
+.panel {
+  @apply rounded-3xl border border-white/[0.08] bg-white/[0.04] shadow-glow backdrop-blur-xl;
+}
