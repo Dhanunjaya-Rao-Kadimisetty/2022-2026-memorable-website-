@@ -44,6 +44,7 @@ export type GalleryImage = {
   photoUrl: string;
   blurDataURL: string;
   audio_path?: string | null;
+  audioUrl?: string;
 };
 
 export type MessageNote = {
