@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { fetchGalleryImages, fetchProfiles, type GalleryImage, type YearbookProfile } from '@/lib/supabaseClient';
+import { cn } from '@/lib/utils';
 
 type Props = {
   profileId: string;
@@ -40,7 +41,7 @@ export default function YearbookProfileClient({
     return () => {
       active = false;
     };
-  }, [initialGallery, initialProfiles, initialResolved]);
+  }, []);
 
   const profile = useMemo(
     () => profiles.find((item) => item.id === normalizedProfileId) ?? null,
@@ -91,6 +92,18 @@ export default function YearbookProfileClient({
     );
   }
 
+  const alignmentClasses = {
+    top: 'object-top',
+    bottom: 'object-bottom',
+    center: 'object-center',
+    left: 'object-left',
+    right: 'object-right',
+  };
+
+  const portraitPosition = profile.photo_alignment 
+    ? alignmentClasses[profile.photo_alignment] 
+    : (profile.full_name.trim().toLowerCase() === 'ganesh varun' ? 'object-[center_6%]' : 'object-[center_18%]');
+
   return (
     <section className="mx-auto min-h-screen w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8 flex items-center justify-between gap-4">
@@ -117,15 +130,65 @@ export default function YearbookProfileClient({
               sizes="(max-width: 1024px) 100vw, 40vw"
               placeholder="blur"
               blurDataURL={profile.blurDataURL}
-              className="object-cover object-[center_18%]"
+              className={cn("object-cover", portraitPosition)}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
           </div>
           <div className="space-y-5 p-6 sm:p-8">
-            <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-zinc-400">{profile.role}</p>
-              <p className="mt-2 text-sm uppercase tracking-[0.25em] text-zinc-500">{profile.batch}</p>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.35em] text-zinc-400">{profile.role}</p>
+                <p className="mt-2 text-sm uppercase tracking-[0.25em] text-zinc-500">{profile.batch}</p>
+              </div>
+              {profile.birthday && (
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-2 text-center">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-zinc-500">Birthday</p>
+                  <p className="mt-1 text-sm font-medium text-white">
+                    {new Date(profile.birthday).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                  </p>
+                </div>
+              )}
             </div>
+
+            <div className="flex flex-wrap gap-3 py-2">
+              {profile.whatsapp_url && (
+                <Link
+                  href={profile.whatsapp_url}
+                  target="_blank"
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-xs font-medium uppercase tracking-widest text-zinc-200 transition hover:bg-emerald-500/10 hover:text-emerald-400"
+                >
+                  WhatsApp
+                </Link>
+              )}
+              {profile.instagram_url && (
+                <Link
+                  href={profile.instagram_url}
+                  target="_blank"
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-xs font-medium uppercase tracking-widest text-zinc-200 transition hover:bg-pink-500/10 hover:text-pink-500"
+                >
+                  Instagram
+                </Link>
+              )}
+              {profile.snapchat_url && (
+                <Link
+                  href={profile.snapchat_url}
+                  target="_blank"
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-xs font-medium uppercase tracking-widest text-zinc-200 transition hover:bg-yellow-500/10 hover:text-yellow-400"
+                >
+                  Snapchat
+                </Link>
+              )}
+              {profile.twitter_url && (
+                <Link
+                  href={profile.twitter_url}
+                  target="_blank"
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-5 py-3 text-xs font-medium uppercase tracking-widest text-zinc-200 transition hover:bg-sky-500/10 hover:text-sky-400"
+                >
+                  Twitter
+                </Link>
+              )}
+            </div>
+
             <blockquote className="border-l border-white/10 pl-5 text-lg leading-8 text-zinc-200">
               {profile.quote}
             </blockquote>

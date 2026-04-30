@@ -245,6 +245,7 @@ export async function PATCH(request: Request, { params }: Params) {
     const height = Number(formData.get('height') ?? 0) || null;
     const current_storage_path = String(formData.get('current_storage_path') ?? '').trim();
     const media = formData.get('image');
+    const audio = formData.get('audio');
     const taggedProfileIds = selectedProfileIds(formData);
 
     if (!title || !category) {
@@ -278,6 +279,28 @@ export async function PATCH(request: Request, { params }: Params) {
       storage_path = filePath;
     }
 
+    let audio_path = String(formData.get('current_audio_path') ?? '').trim() || null;
+    if (audio instanceof File && audio.size > 0) {
+      const audioExt = audio.name.split('.').pop() || 'mp3';
+      const audioFilePath = `music/${crypto.randomUUID()}.${audioExt}`;
+      const audioBuffer = await audio.arrayBuffer();
+      
+      const { error: audioUploadError } = await admin.storage.from('yearbook-music').upload(audioFilePath, audioBuffer, {
+        contentType: audio.type || 'audio/mpeg',
+        upsert: false,
+      });
+
+      if (audioUploadError) {
+        console.error('Audio upload error:', audioUploadError);
+      } else {
+        const currentAudioPath = String(formData.get('current_audio_path') ?? '').trim();
+        if (currentAudioPath) {
+          await admin.storage.from('yearbook-music').remove([currentAudioPath]);
+        }
+        audio_path = audioFilePath;
+      }
+    }
+
     const { data, error } = await updateGalleryRow(admin, id, {
       title,
       category,
@@ -286,6 +309,7 @@ export async function PATCH(request: Request, { params }: Params) {
       height,
       storage_path,
       tagged_profile_ids: validTaggedProfileIds,
+      audio_path,
     });
 
     if (error) {

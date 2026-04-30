@@ -23,6 +23,12 @@ export type YearbookProfile = {
   photoUrl: string;
   priorityPhotoUrls: string[];
   blurDataURL: string;
+  whatsapp_url?: string | null;
+  instagram_url?: string | null;
+  snapchat_url?: string | null;
+  twitter_url?: string | null;
+  birthday?: string | null;
+  photo_alignment?: 'center' | 'top' | 'bottom' | 'left' | 'right';
 };
 
 export type GalleryImage = {
@@ -37,6 +43,7 @@ export type GalleryImage = {
   alt_text: string | null;
   photoUrl: string;
   blurDataURL: string;
+  audio_path?: string | null;
 };
 
 export type MessageNote = {
@@ -135,6 +142,12 @@ export async function createProfile(input: {
   quote?: string;
   story?: string;
   photo_path?: string;
+  whatsapp_url?: string;
+  instagram_url?: string;
+  snapchat_url?: string;
+  twitter_url?: string;
+  birthday?: string;
+  photo_alignment?: string;
 }) {
   if (!supabase) {
     return {
@@ -152,8 +165,14 @@ export async function createProfile(input: {
       quote: input.quote?.trim() || null,
       story: input.story?.trim() || null,
       photo_path: input.photo_path?.trim() || null,
+      whatsapp_url: input.whatsapp_url?.trim() || null,
+      instagram_url: input.instagram_url?.trim() || null,
+      snapchat_url: input.snapchat_url?.trim() || null,
+      twitter_url: input.twitter_url?.trim() || null,
+      birthday: input.birthday || null,
+      photo_alignment: input.photo_alignment || 'center',
     })
-    .select('id, full_name, role, batch, quote, story, photo_path')
+    .select('id, full_name, role, batch, quote, story, photo_path, whatsapp_url, instagram_url, snapchat_url, twitter_url, birthday, photo_alignment')
     .single();
 
   if (response.error && isMissingTableError(response.error)) {
@@ -174,6 +193,7 @@ export async function createGalleryImage(input: {
   alt_text?: string;
   width?: number;
   height?: number;
+  audio_path?: string;
 }) {
   if (!supabase) {
     return {
@@ -191,8 +211,9 @@ export async function createGalleryImage(input: {
       alt_text: input.alt_text?.trim() || null,
       width: input.width ?? null,
       height: input.height ?? null,
+      audio_path: input.audio_path?.trim() || null,
     })
-    .select('id, title, category, storage_path, width, height, alt_text')
+    .select('id, title, category, storage_path, width, height, alt_text, audio_path')
     .single();
 
   if (response.error && isMissingTableError(response.error)) {

@@ -10,7 +10,7 @@ function isMissingTableMessage(message: string) {
 }
 
 function isMissingPriorityPhotosColumnMessage(message: string) {
-  return /priority_photo_paths|priority_photo_details/i.test(message) && /column|schema cache/i.test(message);
+  return /priority_photo_paths|priority_photo_details|whatsapp_url|instagram_url|snapchat_url|twitter_url|birthday|photo_alignment/i.test(message) && /column|schema cache/i.test(message);
 }
 
 export async function POST(request: Request) {
@@ -21,6 +21,12 @@ export async function POST(request: Request) {
     const batch = String(formData.get('batch') ?? '').trim();
     const quote = String(formData.get('quote') ?? '').trim();
     const story = String(formData.get('story') ?? '').trim();
+    const whatsapp_url = String(formData.get('whatsapp_url') ?? '').trim();
+    const instagram_url = String(formData.get('instagram_url') ?? '').trim();
+    const snapchat_url = String(formData.get('snapchat_url') ?? '').trim();
+    const twitter_url = String(formData.get('twitter_url') ?? '').trim();
+    const birthday = String(formData.get('birthday') ?? '').trim();
+    const photo_alignment = String(formData.get('photo_alignment') ?? 'center').trim();
     const photo = formData.get('photo');
     const priorityPhotos = formData.getAll('priority_photos');
 
@@ -80,17 +86,19 @@ export async function POST(request: Request) {
         photo_path: photo_path || null,
         priority_photo_paths,
         priority_photo_details: [],
+        whatsapp_url: whatsapp_url || null,
+        instagram_url: instagram_url || null,
+        snapchat_url: snapchat_url || null,
+        twitter_url: twitter_url || null,
+        birthday: birthday || null,
+        photo_alignment: photo_alignment || 'center',
       })
-      .select('id, full_name, role, batch, quote, story, photo_path, priority_photo_paths, priority_photo_details')
+      .select('id, full_name, role, batch, quote, story, photo_path, priority_photo_paths, priority_photo_details, whatsapp_url, instagram_url, snapchat_url, twitter_url, birthday, photo_alignment')
       .single();
 
     if (response.error && isMissingPriorityPhotosColumnMessage(response.error.message)) {
       if (priority_photo_paths.length) {
         await admin.storage.from(bucketName).remove(priority_photo_paths);
-        return NextResponse.json(
-          { error: 'The public.profiles priority_photo_paths column is missing. Run supabase/seed.sql in Supabase.' },
-          { status: 500 },
-        );
       }
 
       response = await admin

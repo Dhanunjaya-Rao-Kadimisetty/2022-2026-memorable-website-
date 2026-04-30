@@ -139,14 +139,14 @@ function normalizePriorityPhotoDetails(
 async function fetchProfileRows(admin: ReturnType<typeof ensureAdminClient>) {
   const withPriorityPhotos = await admin
     .from('profiles')
-    .select('id, full_name, role, batch, quote, story, photo_path, priority_photo_paths, priority_photo_details')
+    .select('id, full_name, role, batch, quote, story, photo_path, priority_photo_paths, priority_photo_details, whatsapp_url, instagram_url, snapchat_url, twitter_url, birthday, photo_alignment')
     .order('full_name', { ascending: true });
 
   if (!withPriorityPhotos.error) {
     return withPriorityPhotos;
   }
 
-  if (/priority_photo_paths|priority_photo_details/i.test(withPriorityPhotos.error.message ?? '')) {
+  if (/priority_photo_paths|priority_photo_details|whatsapp_url|instagram_url|snapchat_url|twitter_url|birthday|photo_alignment/i.test(withPriorityPhotos.error.message ?? '')) {
     return admin
       .from('profiles')
       .select('id, full_name, role, batch, quote, story, photo_path')
@@ -159,14 +159,14 @@ async function fetchProfileRows(admin: ReturnType<typeof ensureAdminClient>) {
 async function fetchGalleryRows(admin: ReturnType<typeof ensureAdminClient>) {
   const withTags = await admin
     .from('gallery_images')
-    .select('id, title, category, storage_path, width, height, alt_text, tagged_profile_ids')
+    .select('id, title, category, storage_path, width, height, alt_text, tagged_profile_ids, audio_path')
     .order('created_at', { ascending: false });
 
   if (!withTags.error) {
     return withTags;
   }
 
-  if (/tagged_profile_ids/i.test(withTags.error.message ?? '')) {
+  if (/tagged_profile_ids|audio_path/i.test(withTags.error.message ?? '')) {
     return admin
       .from('gallery_images')
       .select('id, title, category, storage_path, width, height, alt_text')
@@ -266,6 +266,9 @@ export async function GET() {
           mediaType: inferMediaType(image.storage_path),
           photoUrl: image.storage_path
             ? admin.storage.from(bucketGallery).getPublicUrl(image.storage_path).data.publicUrl
+            : '',
+          audioUrl: (image as { audio_path?: string }).audio_path
+            ? admin.storage.from('yearbook-music').getPublicUrl((image as { audio_path: string }).audio_path).data.publicUrl
             : '',
           blurDataURL: createBlurDataURL('rgba(255,255,255,0.16)'),
         })) ?? [],

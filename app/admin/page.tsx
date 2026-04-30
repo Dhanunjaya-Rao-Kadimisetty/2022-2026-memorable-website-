@@ -512,6 +512,59 @@ export default function AdminPage() {
               defaultValue={editingProfile?.story ?? ''}
               className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-500"
             />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <input
+                name="whatsapp_url"
+                defaultValue={editingProfile?.whatsapp_url ?? ''}
+                placeholder="WhatsApp URL"
+                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-500"
+              />
+              <input
+                name="instagram_url"
+                defaultValue={editingProfile?.instagram_url ?? ''}
+                placeholder="Instagram URL"
+                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-500"
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <input
+                name="snapchat_url"
+                defaultValue={editingProfile?.snapchat_url ?? ''}
+                placeholder="Snapchat URL"
+                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-500"
+              />
+              <input
+                name="twitter_url"
+                defaultValue={editingProfile?.twitter_url ?? ''}
+                placeholder="Twitter URL"
+                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-zinc-500"
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-zinc-500">Birthday</span>
+                <input
+                  name="birthday"
+                  type="date"
+                  defaultValue={editingProfile?.birthday ?? ''}
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
+                />
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-zinc-500">Photo Alignment</span>
+                <select
+                  name="photo_alignment"
+                  defaultValue={editingProfile?.photo_alignment ?? 'center'}
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
+                >
+                  <option value="center">Center</option>
+                  <option value="top">Top</option>
+                  <option value="bottom">Bottom</option>
+                  <option value="left">Left</option>
+                  <option value="right">Right</option>
+                </select>
+              </label>
+            </div>
             <input type="hidden" name="current_photo_path" defaultValue={editingProfile?.photo_path ?? ''} />
             <input
               name="photo"
@@ -773,17 +826,32 @@ export default function AdminPage() {
             />
           </div>
           <input type="hidden" name="current_storage_path" defaultValue={editingGallery?.storage_path ?? ''} />
+          <input type="hidden" name="current_audio_path" defaultValue={editingGallery?.audio_path ?? ''} />
           <input
             type="hidden"
             name="tagged_profile_ids_json"
             value={JSON.stringify(selectedTaggedProfileIds)}
           />
-          <input
-            name="image"
-            type="file"
-            accept="image/*,video/*"
-            className="block w-full text-sm text-zinc-300 file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-zinc-950"
-          />
+          <div className="space-y-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+            <label className="block">
+              <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-zinc-500">Gallery Photo/Video</span>
+              <input
+                name="image"
+                type="file"
+                accept="image/*,video/*"
+                className="block w-full text-sm text-zinc-300 file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-zinc-950"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-xs uppercase tracking-[0.25em] text-zinc-500">Background Music (Optional)</span>
+              <input
+                name="audio"
+                type="file"
+                accept="audio/*"
+                className="block w-full text-sm text-zinc-300 file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-medium file:text-zinc-950"
+              />
+            </label>
+          </div>
           <button
             type="submit"
             disabled={galleryState.loading}

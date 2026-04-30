@@ -230,6 +230,7 @@ export async function POST(request: Request) {
     const width = Number(formData.get('width') ?? 0) || null;
     const height = Number(formData.get('height') ?? 0) || null;
     const media = formData.get('image');
+    const audio = formData.get('audio');
     const taggedProfileIds = selectedProfileIds(formData);
 
     if (!title || !category) {
@@ -256,6 +257,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: uploadError.message }, { status: 500 });
     }
 
+    let audio_path = '';
+    if (audio instanceof File && audio.size > 0) {
+      const audioExt = audio.name.split('.').pop() || 'mp3';
+      const audioFilePath = `music/${crypto.randomUUID()}.${audioExt}`;
+      const audioBuffer = await audio.arrayBuffer();
+      
+      const { error: audioUploadError } = await admin.storage.from('yearbook-music').upload(audioFilePath, audioBuffer, {
+        contentType: audio.type || 'audio/mpeg',
+        upsert: false,
+      });
+
+      if (audioUploadError) {
+        console.error('Audio upload error:', audioUploadError);
+      } else {
+        audio_path = audioFilePath;
+      }
+    }
+
     const { data, error } = await insertGalleryRow(admin, {
       title,
       category,
@@ -264,6 +283,7 @@ export async function POST(request: Request) {
       height,
       storage_path: filePath,
       tagged_profile_ids: validTaggedProfileIds,
+      audio_path: audio_path || null,
     });
 
     if (error) {

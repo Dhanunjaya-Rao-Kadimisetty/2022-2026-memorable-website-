@@ -166,6 +166,14 @@ export default function MediaVaultClient({ images }: Props) {
                       Tagged in this memory
                     </p>
                   ) : null}
+                  {(image as any).audioUrl && (
+                    <div className="mt-4">
+                      <audio controls className="h-8 w-full max-w-[200px] opacity-60 transition hover:opacity-100">
+                        <source src={(image as any).audioUrl} type="audio/mpeg" />
+                        Your browser does not support the audio element.
+                      </audio>
+                    </div>
+                  )}
                 </div>
                 <button
                   type="button"
