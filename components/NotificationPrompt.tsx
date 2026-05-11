@@ -15,27 +15,18 @@ export default function NotificationPrompt() {
 
   useEffect(() => {
     if ('serviceWorker' in navigator && 'Notification' in window) {
-      // Register service worker
-      navigator.serviceWorker.register('/sw.js').catch(err => {
-        console.error('Service worker registration failed:', err);
-      });
-
+      navigator.serviceWorker.register('/sw.js').catch(console.error);
       setPermission(Notification.permission);
       
       const namePicked = localStorage.getItem('push_name_picked');
-      
-      // If they already granted permission but haven't picked a name, show naming modal
+      const dismissed = localStorage.getItem('push_prompt_dismissed');
+
+      // Show immediately if naming is needed or if they haven't decided yet
       if (Notification.permission === 'granted' && !namePicked) {
         setStep('naming');
-        const timer = setTimeout(() => setShowPrompt(true), 1000);
-        return () => clearTimeout(timer);
-      }
-
-      // Show initial prompt if they haven't decided yet
-      const dismissed = localStorage.getItem('push_prompt_dismissed');
-      if (Notification.permission === 'default' && !dismissed) {
-        const timer = setTimeout(() => setShowPrompt(true), 1500);
-        return () => clearTimeout(timer);
+        setShowPrompt(true);
+      } else if (Notification.permission === 'default' && !dismissed) {
+        setShowPrompt(true);
       }
     } else {
       setIsSupported(false);
@@ -52,21 +43,17 @@ export default function NotificationPrompt() {
     try {
       const result = await Notification.requestPermission();
       setPermission(result);
-      
       if (result === 'granted') {
         const registration = await navigator.serviceWorker.ready;
         await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!)
         });
-
-        // Move to naming step
         setStep('naming');
       } else {
         setShowPrompt(false);
       }
     } catch (err) {
-      console.error('Failed to subscribe:', err);
       setShowPrompt(false);
     }
   };
@@ -76,7 +63,6 @@ export default function NotificationPrompt() {
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
-      
       if (subscription) {
         const profile = profiles.find(p => p.id === selectedProfileId);
         await fetch('/api/notifications/subscribe', {
@@ -90,141 +76,60 @@ export default function NotificationPrompt() {
         });
         localStorage.setItem('push_name_picked', 'true');
       }
-    } catch (error) {
-      console.error('Error saving name:', error);
     } finally {
       setIsSubmitting(false);
       setShowPrompt(false);
     }
   };
 
-  if (!isSupported) return null;
-  if (permission === 'denied') return null;
-
+  if (!isSupported || permission === 'denied') return null;
   const isAlreadySubscribed = permission === 'granted' && localStorage.getItem('push_name_picked') === 'true';
 
   return (
     <>
-      {/* Floating Manual Bell Icon (only if not subscribed or name not picked) */}
       <AnimatePresence>
         {!isAlreadySubscribed && !showPrompt && (
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
+          <button
             onClick={() => setShowPrompt(true)}
-            className="fixed bottom-6 right-6 z-[90] flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-2xl shadow-emerald-500/40 transition hover:bg-emerald-400 active:scale-95"
-            title="Join Alert Squad"
+            className="fixed bottom-6 right-6 z-[90] h-12 w-12 rounded-full bg-emerald-500 text-white shadow-lg flex items-center justify-center"
           >
-            <motion.div
-              animate={{ rotate: [0, -10, 10, -10, 10, 0] }}
-              transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-              </svg>
-            </motion.div>
-            <span className="absolute -top-1 -right-1 flex h-4 w-4">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75"></span>
-              <span className="relative inline-flex h-4 w-4 rounded-full bg-emerald-200"></span>
-            </span>
-          </motion.button>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
+          </button>
         )}
       </AnimatePresence>
 
       <AnimatePresence>
         {showPrompt && (
           <>
-            {/* Backdrop for all centered prompts */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[99] bg-black/70 backdrop-blur-md"
-              onClick={() => setShowPrompt(false)}
-            />
-
+            <div className="fixed inset-0 z-[99] bg-black/60 backdrop-blur-sm" onClick={() => setShowPrompt(false)} />
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20, x: '-50%' }}
-              animate={{ opacity: 1, scale: 1, y: 0, x: '-50%' }}
-              exit={{ opacity: 0, scale: 0.9, x: '-50%' }}
-              style={{ left: '50%', top: '50%', position: 'fixed', transform: 'translate(-50%, -50%)' }}
-              className="z-[100] w-[90%] max-w-[420px] overflow-hidden rounded-[2.5rem] border border-white/10 bg-zinc-900/90 p-8 shadow-2xl backdrop-blur-2xl"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="fixed left-1/2 top-1/2 z-[100] w-[90%] max-w-[380px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl border border-white/10 bg-zinc-900 p-8 shadow-2xl"
             >
               {step === 'prompt' ? (
                 <div className="space-y-6 text-center">
-                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-emerald-500/20 text-emerald-400">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-                    </svg>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-display text-white">Never Miss a Birthday</h3>
-                    <p className="text-sm leading-relaxed text-zinc-400">
-                      Get real-time alerts for every birthday in the batch. Join the celebration!
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col gap-3 pt-4">
-                    <button
-                      onClick={handleSubscribe}
-                      className="w-full rounded-2xl bg-white py-4 text-xs font-bold uppercase tracking-widest text-zinc-950 transition hover:bg-zinc-200 shadow-xl shadow-white/5"
-                    >
-                      Notify Me 🎂
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowPrompt(false);
-                        localStorage.setItem('push_prompt_dismissed', 'true');
-                      }}
-                      className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 hover:text-white"
-                    >
-                      Not now, maybe later
-                    </button>
+                  <h3 className="text-xl font-bold text-white">Birthday Alerts 🎂</h3>
+                  <p className="text-sm text-zinc-400">Get a notification when someone in the batch has a birthday!</p>
+                  <div className="flex flex-col gap-3">
+                    <button onClick={handleSubscribe} className="w-full rounded-xl bg-white py-4 text-xs font-bold uppercase text-zinc-950">Notify Me</button>
+                    <button onClick={() => { setShowPrompt(false); localStorage.setItem('push_prompt_dismissed', 'true'); }} className="text-[10px] font-bold text-zinc-500">Not now</button>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-6 text-center">
-                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-emerald-500/20 text-emerald-400">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-                    </svg>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-display text-white">One Final Step</h3>
-                    <p className="text-sm text-zinc-400">Select your profile so the Admin knows who you are!</p>
-                  </div>
-                  
-                  <div className="relative">
-                    <select
-                      value={selectedProfileId}
-                      onChange={(e) => setSelectedProfileId(e.target.value)}
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 appearance-none text-center"
-                    >
-                      <option value="" disabled className="bg-zinc-900">Which profile is yours?</option>
-                      {profiles.map(p => (
-                        <option key={p.id} value={p.id} className="bg-zinc-900">{p.full_name}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-3 pt-4">
-                    <button
-                      onClick={handleSaveName}
-                      disabled={!selectedProfileId || isSubmitting}
-                      className="w-full rounded-2xl bg-emerald-500 py-4 text-xs font-bold uppercase tracking-widest text-white transition hover:bg-emerald-400 disabled:opacity-50 shadow-xl shadow-emerald-500/20"
-                    >
-                      {isSubmitting ? 'Joining...' : 'I am in the Squad! 🎂'}
-                    </button>
-                    <button
-                      onClick={() => setShowPrompt(false)}
-                      className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white"
-                    >
-                      I&apos;ll do this later
-                    </button>
-                  </div>
+                  <h3 className="text-xl font-bold text-white">Who are you? Person</h3>
+                  <select
+                    value={selectedProfileId}
+                    onChange={(e) => setSelectedProfileId(e.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-white focus:outline-none"
+                  >
+                    <option value="" disabled className="bg-zinc-900">Select your name...</option>
+                    {profiles.map(p => <option key={p.id} value={p.id} className="bg-zinc-900">{p.full_name}</option>)}
+                  </select>
+                  <button onClick={handleSaveName} disabled={!selectedProfileId || isSubmitting} className="w-full rounded-xl bg-emerald-500 py-4 text-xs font-bold uppercase text-white disabled:opacity-50">
+                    {isSubmitting ? 'Joining...' : 'Join Squad'}
+                  </button>
                 </div>
               )}
             </motion.div>
