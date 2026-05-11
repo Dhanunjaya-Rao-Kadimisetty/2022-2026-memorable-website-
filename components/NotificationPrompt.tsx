@@ -26,14 +26,14 @@ export default function NotificationPrompt() {
       // If they already granted permission but haven't picked a name, show naming modal
       if (Notification.permission === 'granted' && !namePicked) {
         setStep('naming');
-        const timer = setTimeout(() => setShowPrompt(true), 2000);
+        const timer = setTimeout(() => setShowPrompt(true), 1000);
         return () => clearTimeout(timer);
       }
 
       // Show initial prompt if they haven't decided yet
       const dismissed = localStorage.getItem('push_prompt_dismissed');
       if (Notification.permission === 'default' && !dismissed) {
-        const timer = setTimeout(() => setShowPrompt(true), 4000); // Show after 4s
+        const timer = setTimeout(() => setShowPrompt(true), 1500); // Show after 1.5s
         return () => clearTimeout(timer);
       }
     }
