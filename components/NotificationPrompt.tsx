@@ -21,6 +21,14 @@ export default function NotificationPrompt() {
 
       setPermission(Notification.permission);
       
+      // If they already granted permission but haven't picked a name, show the naming step
+      const namePicked = localStorage.getItem('push_name_picked');
+      if (Notification.permission === 'granted' && !namePicked) {
+        setStep('naming');
+        setShowPrompt(true);
+        return;
+      }
+
       // Show prompt if they haven't decided yet
       const dismissed = localStorage.getItem('push_prompt_dismissed');
       if (Notification.permission === 'default' && !dismissed) {
@@ -76,6 +84,7 @@ export default function NotificationPrompt() {
             profile_name: profile?.full_name || 'Anonymous'
           }),
         });
+        localStorage.setItem('push_name_picked', 'true');
       }
     } catch (error) {
       console.error('Error saving name:', error);
