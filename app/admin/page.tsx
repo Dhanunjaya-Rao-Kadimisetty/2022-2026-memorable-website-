@@ -34,6 +34,7 @@ export default function AdminPage() {
   const [priorityPhotoState, setPriorityPhotoState] = useState<UploadState>(initialState);
   const [galleryState, setGalleryState] = useState<UploadState>(initialState);
   const [messageState, setMessageState] = useState<UploadState>(initialState);
+  const [notifyState, setNotifyState] = useState<UploadState>(initialState);
   const [profiles, setProfiles] = useState<YearbookProfile[]>([]);
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
   const [messages, setMessages] = useState<MessageNote[]>([]);
@@ -313,6 +314,22 @@ export default function AdminPage() {
     }
   }
 
+  async function sendBirthdayNotifications() {
+    if (!confirm('This will send a push notification to all subscribed batch members about today\'s birthdays. Continue?')) return;
+    setNotifyState({ loading: true, message: '', error: '' });
+    try {
+      const response = await fetch('/api/notifications/send', { method: 'POST' });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setNotifyState({ loading: false, message: '', error: getMessage(payload.error) || 'Failed to send notifications' });
+        return;
+      }
+      setNotifyState({ loading: false, message: payload.message || 'Notifications sent!', error: '' });
+    } catch (error) {
+      setNotifyState({ loading: false, message: '', error: getMessage(error) || 'Failed to send notifications' });
+    }
+  }
+
   function getMessage(value: unknown) {
     if (typeof value === 'string') return value;
     if (value instanceof Error) return value.message;
@@ -345,16 +362,28 @@ export default function AdminPage() {
                   Now with social links, birthdays, and background music support.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (browserSupabase) await browserSupabase.auth.signOut();
-                  router.push('/admin/login');
-                }}
-                className="rounded-full border border-white/10 px-5 py-3 text-sm text-zinc-100 transition hover:bg-white/[0.08]"
-              >
-                Sign Out
-              </button>
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (browserSupabase) await browserSupabase.auth.signOut();
+                    router.push('/admin/login');
+                  }}
+                  className="rounded-full border border-white/10 px-5 py-3 text-sm text-zinc-100 transition hover:bg-white/[0.08]"
+                >
+                  Sign Out
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void sendBirthdayNotifications()}
+                  disabled={notifyState.loading}
+                  className="rounded-full bg-emerald-500/10 px-5 py-3 text-sm font-bold text-emerald-400 border border-emerald-500/20 transition hover:bg-emerald-500/20 disabled:opacity-50"
+                >
+                  {notifyState.loading ? 'Sending...' : 'Notify Batch 🎂'}
+                </button>
+                {notifyState.message && <p className="text-[10px] text-emerald-400 text-center">{notifyState.message}</p>}
+                {notifyState.error && <p className="text-[10px] text-red-400 text-center">{notifyState.error}</p>}
+              </div>
             </div>
             {loadError ? (
               <div className="mt-6 rounded-2xl border border-red-400/20 bg-red-400/10 px-4 py-4 text-sm text-red-100">

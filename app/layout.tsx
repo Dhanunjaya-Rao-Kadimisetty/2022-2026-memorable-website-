@@ -4,6 +4,8 @@ import { Instrument_Sans, Playfair_Display } from 'next/font/google';
 import { cookies } from 'next/headers';
 import type { ReactNode } from 'react';
 import Navbar from '@/components/Navbar';
+import BirthdayBanner from '@/components/BirthdayBanner';
+import NotificationPrompt from '@/components/NotificationPrompt';
 import './globals.css';
 
 const sans = Instrument_Sans({
@@ -62,6 +64,8 @@ export default async function RootLayout({
     <html lang="en" className={`${sans.variable} ${display.variable}`}>
       <body className="relative min-h-screen overflow-x-hidden">
         <div className="grain-overlay" />
+        <BirthdayBanner />
+        <NotificationPrompt />
         <Navbar showAdminLink={showAdminLink} />
         <main className="relative z-10">{children}</main>
       </body>
