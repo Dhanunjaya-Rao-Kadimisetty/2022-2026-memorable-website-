@@ -31,7 +31,7 @@ export default function ProfileCard({ profile, index, selected = false, hoverPho
     if (!profile.birthday) return false;
     const today = new Date();
     // Birthday is stored as YYYY-MM-DD
-    const [year, month, day] = profile.birthday.split('-').map(Number);
+    const [_, month, day] = profile.birthday.split('-').map(Number);
     return today.getDate() === day && (today.getMonth() + 1) === month;
   }, [profile.birthday]);
 

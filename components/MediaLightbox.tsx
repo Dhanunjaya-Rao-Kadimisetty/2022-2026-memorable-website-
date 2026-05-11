@@ -1,8 +1,8 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { GalleryImage } from '@/lib/supabaseClient';
 import { buildDownloadFilename, downloadMedia } from '@/lib/downloadMedia';
 
@@ -16,6 +16,18 @@ export default function MediaLightbox({ media, onClose, allMedia = [] }: Props) 
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [downloadState, setDownloadState] = useState(false);
 
+  const handlePrev = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  }, [currentIndex]);
+
+  const handleNext = useCallback(() => {
+    if (currentIndex < allMedia.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  }, [currentIndex, allMedia.length]);
+
   useEffect(() => {
     if (media && allMedia.length > 0) {
       const index = allMedia.findIndex((m) => m.id === media.id);
@@ -28,33 +40,21 @@ export default function MediaLightbox({ media, onClose, allMedia = [] }: Props) 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft' && currentIndex > 0) {
+      if (e.key === 'ArrowLeft') {
         handlePrev();
       }
-      if (e.key === 'ArrowRight' && currentIndex < allMedia.length - 1) {
+      if (e.key === 'ArrowRight') {
         handleNext();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, currentIndex, allMedia]);
+  }, [onClose, handleNext, handlePrev]);
 
   const activeMedia = currentIndex >= 0 ? allMedia[currentIndex] : media;
 
   if (!activeMedia) return null;
-
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (currentIndex < allMedia.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    }
-  };
 
   const handleDownload = async () => {
     if (!activeMedia) return;

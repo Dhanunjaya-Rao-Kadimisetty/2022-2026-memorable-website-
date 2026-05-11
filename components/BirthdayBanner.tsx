@@ -33,7 +33,7 @@ export default function BirthdayBanner() {
 
     return profiles.filter((p) => {
       if (!p.birthday) return false;
-      const [pYear, pMonth, pDay] = p.birthday.split('-').map(Number);
+      const [_, pMonth, pDay] = p.birthday.split('-').map(Number);
       return pDay === day && pMonth === month;
     });
   }, [profiles]);

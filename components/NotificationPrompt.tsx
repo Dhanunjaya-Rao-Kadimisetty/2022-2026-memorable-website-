@@ -81,7 +81,7 @@ export default function NotificationPrompt() {
           <div className="flex-1">
             <h3 className="text-sm font-bold text-white">Birthday Alerts</h3>
             <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
-              Get notified when someone in the batch has a birthday so you don't miss out!
+              Get notified when someone in the batch has a birthday so you don&apos;t miss out!
             </p>
             <div className="mt-4 flex items-center gap-3">
               <button
