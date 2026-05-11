@@ -341,6 +341,23 @@ export default function AdminPage() {
     }
   }
 
+  async function deleteSubscription(id: string) {
+    if (!confirm('Remove this person from the alert squad?')) return;
+    setNotifyState({ loading: true, message: '', error: '' });
+    try {
+      const response = await fetch(`/api/notifications/subscribe/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!response.ok) throw new Error('Failed to delete');
+      await refreshCollections();
+      setNotifyState({ loading: false, message: 'Subscriber removed.', error: '' });
+    } catch (error) {
+      setNotifyState({ loading: false, message: '', error: getMessage(error) || 'Failed to delete' });
+    }
+  }
+
   function getMessage(value: unknown) {
     if (typeof value === 'string') return value;
     if (value instanceof Error) return value.message;
@@ -740,10 +757,21 @@ export default function AdminPage() {
                         <p className="font-medium text-white">{s.profile_name || 'Anonymous'}</p>
                         <p className="text-[10px] text-zinc-500">{new Date(s.created_at).toLocaleDateString()}</p>
                       </div>
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-                        </svg>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                          </svg>
+                        </div>
+                        <button
+                          onClick={() => void deleteSubscription(s.id)}
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/10 text-red-500/60 transition hover:bg-red-500/20 hover:text-red-400"
+                          title="Remove subscriber"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                          </svg>
+                        </button>
                       </div>
                     </div>
                   ))
