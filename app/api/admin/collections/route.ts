@@ -301,7 +301,7 @@ export async function GET() {
           blurDataURL: createBlurDataURL('rgba(255,255,255,0.16)'),
         })) ?? [],
       messages: (messagesResponse.data ?? []) as MessageNote[],
-      subscriptions: (subscriptionsResponse.data ?? []) as any[],
+      subscriptions: (subscriptionsResponse.data ?? []) as Array<{ id: string; profile_name: string | null; created_at: string }>,
       counts: {
         profiles: countFromHeadResponse(profilesCount),
         memories: countFromHeadResponse(galleryCount),

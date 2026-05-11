@@ -23,6 +23,12 @@ const initialState: UploadState = {
   error: '',
 };
 
+interface PushSubscription {
+  id: string;
+  profile_name: string | null;
+  created_at: string;
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -38,7 +44,7 @@ export default function AdminPage() {
   const [profiles, setProfiles] = useState<YearbookProfile[]>([]);
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
   const [messages, setMessages] = useState<MessageNote[]>([]);
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<PushSubscription[]>([]);
   const [editingProfile, setEditingProfile] = useState<EditingProfile>(null);
   const [editingGallery, setEditingGallery] = useState<EditingGallery>(null);
   const [selectedPriorityProfileId, setSelectedPriorityProfileId] = useState('');
@@ -56,7 +62,7 @@ export default function AdminPage() {
           profiles?: YearbookProfile[];
           gallery?: GalleryImage[];
           messages?: MessageNote[];
-          subscriptions?: any[];
+          subscriptions?: PushSubscription[];
           error?: string;
         };
 
@@ -108,7 +114,7 @@ export default function AdminPage() {
       profiles?: YearbookProfile[];
       gallery?: GalleryImage[];
       messages?: MessageNote[];
-      subscriptions?: any[];
+      subscriptions?: PushSubscription[];
       error?: string;
     };
 
