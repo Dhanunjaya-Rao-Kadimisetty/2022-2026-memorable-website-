@@ -2,18 +2,25 @@ import webpush from 'web-push';
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-webpush.setVapidDetails(
-  'mailto:saidhanunjaya19@gmail.com', // Using admin email from env if possible
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
 
 export async function POST() {
   try {
+    const vapidPublic = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    const vapidPrivate = process.env.VAPID_PRIVATE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey || !vapidPublic || !vapidPrivate) {
+      return NextResponse.json({ error: 'Server configuration missing' }, { status: 500 });
+    }
+
+    webpush.setVapidDetails(
+      'mailto:saidhanunjaya19@gmail.com',
+      vapidPublic,
+      vapidPrivate
+    );
+
     // 1. Fetch today's birthdays
     const today = new Date();
     const day = today.getDate();
