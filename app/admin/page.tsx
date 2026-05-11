@@ -38,6 +38,7 @@ export default function AdminPage() {
   const [profiles, setProfiles] = useState<YearbookProfile[]>([]);
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
   const [messages, setMessages] = useState<MessageNote[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [editingProfile, setEditingProfile] = useState<EditingProfile>(null);
   const [editingGallery, setEditingGallery] = useState<EditingGallery>(null);
   const [selectedPriorityProfileId, setSelectedPriorityProfileId] = useState('');
@@ -55,6 +56,7 @@ export default function AdminPage() {
           profiles?: YearbookProfile[];
           gallery?: GalleryImage[];
           messages?: MessageNote[];
+          subscriptions?: any[];
           error?: string;
         };
 
@@ -66,6 +68,7 @@ export default function AdminPage() {
         setProfiles(payload.profiles ?? []);
         setGallery(payload.gallery ?? []);
         setMessages(payload.messages ?? []);
+        setSubscriptions(payload.subscriptions ?? []);
         setLoadError('');
       } catch (error) {
         if (!active) return;
@@ -105,6 +108,7 @@ export default function AdminPage() {
       profiles?: YearbookProfile[];
       gallery?: GalleryImage[];
       messages?: MessageNote[];
+      subscriptions?: any[];
       error?: string;
     };
 
@@ -115,6 +119,7 @@ export default function AdminPage() {
     setProfiles(payload.profiles ?? []);
     setGallery(payload.gallery ?? []);
     setMessages(payload.messages ?? []);
+    setSubscriptions(payload.subscriptions ?? []);
     setLoadError('');
   }
 
@@ -702,16 +707,42 @@ export default function AdminPage() {
           </div>
 
           {/* Wall Management */}
-          <div className="panel p-6 sm:p-8">
-            <h3 className="font-display text-2xl text-white">Manage Wall Notes ({messages.length})</h3>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              {messages.map(m => (
-                <div key={m.id} className="relative rounded-2xl bg-white/[0.03] p-4">
-                  <p className="text-[10px] uppercase tracking-widest text-zinc-500">{m.author_name}</p>
-                  <p className="mt-2 line-clamp-3 text-sm text-zinc-300">{m.content}</p>
-                  <button onClick={() => void deleteMessage(m)} className="mt-3 text-[10px] uppercase tracking-widest text-red-500/60 hover:text-red-400">Delete Note</button>
-                </div>
-              ))}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="panel p-6 sm:p-8">
+              <h3 className="font-display text-2xl text-white">Manage Wall Notes ({messages.length})</h3>
+              <div className="mt-6 grid gap-4">
+                {messages.map(m => (
+                  <div key={m.id} className="relative rounded-2xl bg-white/[0.03] p-4">
+                    <p className="text-[10px] uppercase tracking-widest text-zinc-500">{m.author_name}</p>
+                    <p className="mt-2 line-clamp-3 text-sm text-zinc-300">{m.content}</p>
+                    <button onClick={() => void deleteMessage(m)} className="mt-3 text-[10px] uppercase tracking-widest text-red-500/60 hover:text-red-400">Delete Note</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="panel p-6 sm:p-8">
+              <h3 className="font-display text-2xl text-white">Alert Squad ({subscriptions.length})</h3>
+              <p className="mt-2 text-xs text-zinc-500 italic">People who have enabled birthday notifications.</p>
+              <div className="mt-6 max-h-[400px] overflow-y-auto space-y-3 pr-2">
+                {subscriptions.length === 0 ? (
+                  <p className="text-sm text-zinc-600 italic">No one has joined the squad yet.</p>
+                ) : (
+                  subscriptions.map(s => (
+                    <div key={s.id} className="flex items-center justify-between rounded-2xl bg-white/[0.03] p-4">
+                      <div>
+                        <p className="font-medium text-white">{s.profile_name || 'Anonymous'}</p>
+                        <p className="text-[10px] text-zinc-500">{new Date(s.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                        </svg>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </motion.div>

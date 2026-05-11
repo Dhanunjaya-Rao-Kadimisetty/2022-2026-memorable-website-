@@ -201,11 +201,12 @@ export async function GET() {
     const bucketProfile = process.env.NEXT_PUBLIC_SUPABASE_PROFILE_BUCKET ?? 'yearbook-media';
     const bucketGallery = process.env.NEXT_PUBLIC_SUPABASE_GALLERY_BUCKET ?? 'yearbook-gallery';
 
-    const [profilesResponse, galleryResponse] = await Promise.all([fetchProfileRows(admin), fetchGalleryRows(admin)]);
-    const messagesResponse = await admin
-      .from('messages')
-      .select('id, author_name, content, created_at')
-      .order('created_at', { ascending: false });
+    const [profilesResponse, galleryResponse, messagesResponse, subscriptionsResponse] = await Promise.all([
+      fetchProfileRows(admin), 
+      fetchGalleryRows(admin),
+      admin.from('messages').select('id, author_name, content, created_at').order('created_at', { ascending: false }),
+      admin.from('push_subscriptions').select('id, profile_name, created_at').order('created_at', { ascending: false })
+    ]);
 
     if (profilesResponse.error) {
       if (isMissingTableMessage(profilesResponse.error.message)) {
@@ -300,6 +301,7 @@ export async function GET() {
           blurDataURL: createBlurDataURL('rgba(255,255,255,0.16)'),
         })) ?? [],
       messages: (messagesResponse.data ?? []) as MessageNote[],
+      subscriptions: (subscriptionsResponse.data ?? []) as any[],
       counts: {
         profiles: countFromHeadResponse(profilesCount),
         memories: countFromHeadResponse(galleryCount),

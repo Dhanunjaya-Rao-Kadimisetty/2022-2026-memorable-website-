@@ -10,10 +10,12 @@ export async function POST(request: Request) {
     if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json({ error: 'Database configuration missing' }, { status: 500 });
     }
-    const subscription = await request.json();
+    const { subscription, profile_name, profile_id } = await request.json();
 
     const { error } = await supabase.from('push_subscriptions').insert({
       subscription_json: subscription,
+      profile_name,
+      profile_id
     });
 
     if (error) throw error;
